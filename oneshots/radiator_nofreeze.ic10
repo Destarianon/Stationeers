@@ -1,0 +1,28 @@
+# Radiator controller - Destari 2025
+# Controls a basic radiator array, preventing freezing and condensation failures
+
+define AllowLiquid 0
+define MinTemp 200
+
+alias Valve d0
+alias Pump d1
+alias Analyzer d2
+
+setup:
+s Valve On 0
+s Pump On 0
+loop:
+l r1 Analyzer Pressure # If there is pressure in the loop, drain it
+sgtz r0 r1
+s Pump On r0
+l r0 db Setting # Check for cooling request
+sgtz r0 r0
+l r2 Analyzer VolumeOfLiquid # Check for liquid presence
+seqz r2 r2
+or r2 r2 AllowLiquid
+and r0 r0 r2
+l r3 Analyzer Temperature # Make sure it is above minimum temp
+sgt r3 r3 MinTemp
+and r0 r0 r3
+s Valve On r0
+j loop
